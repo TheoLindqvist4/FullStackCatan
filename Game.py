@@ -188,6 +188,9 @@ game.placing_first_settlement()  # Players take turns placing settlements and ro
 import tkinter as tk
 from PIL import Image, ImageTk
 
+import tkinter as tk
+from PIL import Image, ImageTk
+
 class CatanInterface:
     def __init__(self, board):
         self.board = board
@@ -220,58 +223,95 @@ class CatanInterface:
         self.create_board()
         self.root.mainloop()
 
+    def scale_dimensions(self, scale_of_widget):
+        dimension_image = [298,345]
+        new_dimension = [
+            scale_of_widget[0] - 100,
+            scale_of_widget[1] - 100
+        ]
+
+        scale_image = new_dimension[0] / 5
+        scale_image_overlap = scale_image * 1.3245
+
+        factor = scale_image_overlap / dimension_image[1]
+        new_dimension_image = [
+            dimension_image[0] * factor,
+            dimension_image[1] * factor
+        ]
+
+        # Calculate positions based on new dimensions
+        positions = {
+            1: [
+                [new_dimension[0] / 2 - new_dimension_image[0],0],
+                [new_dimension[0] / 2, 0],
+                [new_dimension[0] / 2 + new_dimension_image[0], 0]
+            ],
+            2: [
+                [new_dimension[0] / 2 - 1.5 * new_dimension_image[0], scale_image],
+                [new_dimension[0] / 2 - new_dimension_image[0] / 2, scale_image],
+                [new_dimension[0] / 2 + new_dimension_image[0] / 2, scale_image],
+                [new_dimension[0] / 2 + 1.5 * new_dimension_image[0],scale_image]
+            ],
+            3: [
+                [new_dimension[0] / 2 - 2 * new_dimension_image[0], 2* scale_image],
+                [new_dimension[0] / 2 - new_dimension_image[0], 2*scale_image],
+                [new_dimension[0] / 2, 2*scale_image],
+                [new_dimension[0] / 2 + new_dimension_image[0], 2*scale_image],
+                [new_dimension[0] / 2 + 2 * new_dimension_image[0], 2*scale_image]
+            ],
+            4: [
+                [new_dimension[0] / 2 - 1.5 * new_dimension_image[0], 3*scale_image],
+                [new_dimension[0] / 2 - new_dimension_image[0] / 2, 3*scale_image],
+                [new_dimension[0] / 2 + new_dimension_image[0] / 2, 3*scale_image],
+                [new_dimension[0] / 2 + 1.5 * new_dimension_image[0], 3*scale_image]
+            ],
+            5: [
+                [new_dimension[0] / 2 - new_dimension_image[0], 4*scale_image],
+                [new_dimension[0] / 2, 4*scale_image],
+                [new_dimension[0] / 2 + new_dimension_image[0], 4*scale_image]
+            ]
+        }
+
+        return new_dimension_image, positions
+
+
+
     def load_images(self):
-        # Original dimensions of tile and number images
-        original_size_tiles = [666, 375]
-        factor_tiles = 0.6
-        x_size_tiles = int(original_size_tiles[0] * factor_tiles)
-        y_size_tiles = int(original_size_tiles[1] * factor_tiles)
-
-        original_size_numbers = [500, 500]
-        factor_numbers = 0.5
-        x_size_numbers = int(original_size_numbers[0] * factor_numbers)
-        y_size_numbers = int(original_size_numbers[1] * factor_numbers)
-
-        # Resize tile images with integer dimensions
+        scale_of_widget = [800, 800]
+        self.tile_size, self.positions = self.scale_dimensions(scale_of_widget)
+        
+        # Resize tile and number images based on scaled dimensions
         self.tile_imgs = {
-            key: ImageTk.PhotoImage(Image.open(path).resize((x_size_tiles, y_size_tiles), Image.LANCZOS)) if path else None
+            key: ImageTk.PhotoImage(Image.open(path).resize((int(self.tile_size[0]), int(self.tile_size[1])), Image.LANCZOS))
             for key, path in self.resource_images.items()
         }
-        
-        # Resize number images with integer dimensions
         self.num_imgs = {
-            num: ImageTk.PhotoImage(Image.open(path).resize((x_size_numbers, y_size_numbers), Image.LANCZOS)) for num, path in self.number_images.items()
+            num: ImageTk.PhotoImage(Image.open(path).resize((50, 50), Image.LANCZOS))  # Adjust this as necessary
+            for num, path in self.number_images.items()
         }
 
-
     def create_board(self):
-        # Adjust the hex size and spacing based on the resized dimensions
-        hex_width, hex_height = 140, 140  # Tile image size after resizing
-        x_offset = hex_width * 0.4  # Adjust to bring tiles closer in the x-direction
-        y_offset = hex_height * 0.7  # Adjust to bring tiles closer in the y-direction
-
-        # Create a canvas large enough to display the board without excessive space
-        self.canvas = tk.Canvas(self.root, width=800, height=800, bg="white")  # Adjust size as needed
+        self.canvas = tk.Canvas(self.root, width=800, height=800, bg="white")
         self.canvas.pack()
 
-        for row in range(5):
-            for col, (tile, number) in enumerate(zip(self.board.tile_grid[row], self.board.grid[row])):
-                # Calculate position
-                x = col * x_offset + (x_offset / 2 if row % 2 == 1 else 0)
-                y = row * y_offset
-
-                # Draw tile image
+        for row, tiles in enumerate(self.board.tile_grid):
+            for col, tile in enumerate(tiles):
+                pos = self.positions[row + 1][col]  # Get the specific position for each tile
                 tile_img = self.tile_imgs.get(tile)
                 if tile_img:
-                    self.canvas.create_image(x, y, image=tile_img, anchor="nw")
+                    self.canvas.create_image(pos[0], pos[1], image=tile_img, anchor="nw")
 
-                # Draw number image, centered on the tile
+                number = self.board.grid[row][col]
                 if number != 7:
                     num_img = self.num_imgs.get(number)
                     if num_img:
-                        num_x_offset = (hex_width - 20) / 2  # Adjusted for resized number image
-                        num_y_offset = (hex_height - 20) / 2
-                        self.canvas.create_image(x + num_x_offset, y + num_y_offset, image=num_img, anchor="nw")
+                        self.canvas.create_image(
+                            pos[0] + self.tile_size[0] / 2 - 25, pos[1] + self.tile_size[1] / 2 - 25,
+                            image=num_img, anchor="nw"
+                        )
+
+
+
 
 
 # Create and display the board
