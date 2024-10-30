@@ -2,16 +2,11 @@ from PIL import Image
 
 # Define the paths for each resource image
 image_paths = [
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\5.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\6.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\8.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\9.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\10.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\11.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\12.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\2.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\3.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\numbers\4.png"
+    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\settlements\black.png",
+    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\settlements\blue.png",
+    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\settlements\orange.png",
+    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\settlements\red.png",
+    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\settlements\yellow.png"
 ]
 
 # Define target dimensions
