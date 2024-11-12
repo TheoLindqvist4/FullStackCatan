@@ -197,7 +197,7 @@ class CatanInterface:
         self.root = tk.Tk()
         self.root.title("Catan Board")
 
-        # Paths to resources and numbers
+        # Paths to resources, numbers, and available spots
         self.resource_images = {
             'Brick': "C:/Theo/School/ESIEE/Annee/E5/Full Stack/First version Catan/images/tiles/brick.png",
             'Sheep': "C:/Theo/School/ESIEE/Annee/E5/Full Stack/First version Catan/images/tiles/sheep.png",
@@ -218,13 +218,16 @@ class CatanInterface:
             11: "C:/Theo/School/ESIEE/Annee/E5/Full Stack/First version Catan/images/numbers/11.png",
             12: "C:/Theo/School/ESIEE/Annee/E5/Full Stack/First version Catan/images/numbers/12.png"
         }
+        self.available_spots = {
+            'Circle': "C:/Theo/School/ESIEE/Annee/E5/Full Stack/First version Catan/images/available_spots/circle.png"
+        }
 
         self.load_images()
         self.create_board()
         self.root.mainloop()
 
     def scale_dimensions(self, scale_of_widget):
-        dimension_image = [298,345]
+        dimension_image = [298, 345]
         new_dimension = [
             scale_of_widget[0] - 100,
             scale_of_widget[1] - 100
@@ -242,7 +245,7 @@ class CatanInterface:
         # Calculate positions based on new dimensions
         positions = {
             1: [
-                [new_dimension[0] / 2 - new_dimension_image[0],0],
+                [new_dimension[0] / 2 - new_dimension_image[0], 0],
                 [new_dimension[0] / 2, 0],
                 [new_dimension[0] / 2 + new_dimension_image[0], 0]
             ],
@@ -250,36 +253,34 @@ class CatanInterface:
                 [new_dimension[0] / 2 - 1.5 * new_dimension_image[0], scale_image],
                 [new_dimension[0] / 2 - new_dimension_image[0] / 2, scale_image],
                 [new_dimension[0] / 2 + new_dimension_image[0] / 2, scale_image],
-                [new_dimension[0] / 2 + 1.5 * new_dimension_image[0],scale_image]
+                [new_dimension[0] / 2 + 1.5 * new_dimension_image[0], scale_image]
             ],
             3: [
-                [new_dimension[0] / 2 - 2 * new_dimension_image[0], 2* scale_image],
-                [new_dimension[0] / 2 - new_dimension_image[0], 2*scale_image],
-                [new_dimension[0] / 2, 2*scale_image],
-                [new_dimension[0] / 2 + new_dimension_image[0], 2*scale_image],
-                [new_dimension[0] / 2 + 2 * new_dimension_image[0], 2*scale_image]
+                [new_dimension[0] / 2 - 2 * new_dimension_image[0], 2 * scale_image],
+                [new_dimension[0] / 2 - new_dimension_image[0], 2 * scale_image],
+                [new_dimension[0] / 2, 2 * scale_image],
+                [new_dimension[0] / 2 + new_dimension_image[0], 2 * scale_image],
+                [new_dimension[0] / 2 + 2 * new_dimension_image[0], 2 * scale_image]
             ],
             4: [
-                [new_dimension[0] / 2 - 1.5 * new_dimension_image[0], 3*scale_image],
-                [new_dimension[0] / 2 - new_dimension_image[0] / 2, 3*scale_image],
-                [new_dimension[0] / 2 + new_dimension_image[0] / 2, 3*scale_image],
-                [new_dimension[0] / 2 + 1.5 * new_dimension_image[0], 3*scale_image]
+                [new_dimension[0] / 2 - 1.5 * new_dimension_image[0], 3 * scale_image],
+                [new_dimension[0] / 2 - new_dimension_image[0] / 2, 3 * scale_image],
+                [new_dimension[0] / 2 + new_dimension_image[0] / 2, 3 * scale_image],
+                [new_dimension[0] / 2 + 1.5 * new_dimension_image[0], 3 * scale_image]
             ],
             5: [
-                [new_dimension[0] / 2 - new_dimension_image[0], 4*scale_image],
-                [new_dimension[0] / 2, 4*scale_image],
-                [new_dimension[0] / 2 + new_dimension_image[0], 4*scale_image]
+                [new_dimension[0] / 2 - new_dimension_image[0], 4 * scale_image],
+                [new_dimension[0] / 2, 4 * scale_image],
+                [new_dimension[0] / 2 + new_dimension_image[0], 4 * scale_image]
             ]
         }
 
         return new_dimension_image, positions
 
-
-
     def load_images(self):
         scale_of_widget = [800, 800]
         self.tile_size, self.positions = self.scale_dimensions(scale_of_widget)
-        
+
         # Resize tile and number images based on scaled dimensions
         self.tile_imgs = {
             key: ImageTk.PhotoImage(Image.open(path).resize((int(self.tile_size[0]), int(self.tile_size[1])), Image.LANCZOS))
@@ -289,6 +290,93 @@ class CatanInterface:
             num: ImageTk.PhotoImage(Image.open(path).resize((50, 50), Image.LANCZOS))  # Adjust this as necessary
             for num, path in self.number_images.items()
         }
+        self.spot_img = ImageTk.PhotoImage(Image.open(self.available_spots['Circle']).resize((30, 30), Image.LANCZOS))
+
+    def available_spots(self, scale_of_widget):
+        dimension_image = [168, 168]
+        dimension_image_tile = [
+            scale_of_widget[0] - 100,
+            scale_of_widget[1] - 100
+        ]
+
+        scale_image = dimension_image_tile[0] / 5
+        scale_image_overlap = scale_image * 1.3245
+
+        factor_available_spots = scale_image_overlap / 5
+        new_dimension_image = [
+            dimension_image[0] * factor_available_spots,
+            dimension_image[1] * factor_available_spots
+        ]
+
+        positions = {
+            1: [
+                [dimension_image_tile[0] / 2 - new_dimension_image[0],0],
+                [dimension_image_tile[0] / 2, 0],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0], 0]
+            ],
+            2: [
+                [dimension_image_tile[0] / 2 - new_dimension_image[0],scale_image],
+                [dimension_image_tile[0] / 2, scale_image],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0], scale_image]  
+            ],
+
+            3: [
+                [dimension_image_tile[0] / 2 - 1.5 * new_dimension_image[0], scale_image],
+                [dimension_image_tile[0] / 2 - new_dimension_image[0] / 2, scale_image],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0] / 2, scale_image],
+                [dimension_image_tile[0] / 2 + 1.5 * new_dimension_image[0],scale_image]
+            ],
+
+            4: [
+                [dimension_image_tile[0] / 2 - 1.5 * new_dimension_image[0], 2*scale_image],
+                [dimension_image_tile[0] / 2 - new_dimension_image[0] / 2, 2*scale_image],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0] / 2, 2*scale_image],
+                [dimension_image_tile[0] / 2 + 1.5 * new_dimension_image[0], 2*scale_image]
+            ],
+
+            5: [
+                [dimension_image_tile[0] / 2 - 2 * new_dimension_image[0], 2* scale_image],
+                [dimension_image_tile[0] / 2 - new_dimension_image[0], 2*scale_image],
+                [dimension_image_tile[0] / 2, 2*scale_image],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0], 2*scale_image],
+                [dimension_image_tile[0] / 2 + 2 * new_dimension_image[0], 2*scale_image]
+            ],
+
+            6: [
+                [dimension_image_tile[0] / 2 - 2 * new_dimension_image[0], 3* scale_image],
+                [dimension_image_tile[0] / 2 - new_dimension_image[0], 3*scale_image],
+                [dimension_image_tile[0] / 2, 3*scale_image],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0], 3*scale_image],
+                [dimension_image_tile[0] / 2 + 2 * new_dimension_image[0], 3*scale_image]
+            ],
+
+            7: [
+                [dimension_image_tile[0] / 2 - 1.5 * new_dimension_image[0], 3*scale_image],
+                [dimension_image_tile[0] / 2 - new_dimension_image[0] / 2, 3*scale_image],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0] / 2, 3*scale_image],
+                [dimension_image_tile[0] / 2 + 1.5 * new_dimension_image[0], 3*scale_image]
+            ],
+
+            8: [
+                [dimension_image_tile[0] / 2 - 1.5 * new_dimension_image[0], 4*scale_image],
+                [dimension_image_tile[0] / 2 - new_dimension_image[0] / 2, 4*scale_image],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0] / 2, 4*scale_image],
+                [dimension_image_tile[0] / 2 + 1.5 * new_dimension_image[0], 4*scale_image]
+            ],
+
+            9: [
+                [dimension_image_tile[0] / 2 - new_dimension_image[0], 4*scale_image],
+                [dimension_image_tile[0] / 2, 4*scale_image],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0], 4*scale_image]
+            ],
+
+            10: [
+                [dimension_image_tile[0] / 2 - new_dimension_image[0], 5*scale_image],
+                [dimension_image_tile[0] / 2, 5*scale_image],
+                [dimension_image_tile[0] / 2 + new_dimension_image[0], 5*scale_image]
+            ]
+        }
+        return new_dimension_image, positions
 
     def create_board(self):
         self.canvas = tk.Canvas(self.root, width=800, height=800, bg="white")
@@ -310,8 +398,14 @@ class CatanInterface:
                             image=num_img, anchor="nw"
                         )
 
-
-
+                # Place available spots circles
+                new_dimension_image, available_positions = self.available_spots([800, 800])
+                for key in available_positions:
+                    for spot_pos in available_positions[key]:
+                        self.canvas.create_image(
+                            spot_pos[0] + pos[0], spot_pos[1] + pos[1],
+                            image=self.spot_img, anchor="center"
+                        )
 
 
 # Create and display the board

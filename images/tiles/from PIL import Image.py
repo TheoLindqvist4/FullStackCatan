@@ -2,11 +2,7 @@ from PIL import Image
 
 # Define the paths for each resource image
 image_paths = [
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\cities\black_city.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\cities\blue_city.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\cities\orange_city.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\cities\red_city.png",
-    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\cities\yellow_city.png"
+    r"C:\Theo\School\ESIEE\Annee\E5\Full Stack\First version Catan\images\available_spots\circle.png"
 ]
 
 # Define target dimensions
