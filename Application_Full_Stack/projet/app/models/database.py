@@ -18,3 +18,16 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
 
 BaseSQL = declarative_base()
+
+
+from sqlalchemy import Column, Integer, String
+
+# Define the User model
+class User(BaseSQL):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String, index=True)
+    last_name = Column(String, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password = Column(String, nullable=False)
