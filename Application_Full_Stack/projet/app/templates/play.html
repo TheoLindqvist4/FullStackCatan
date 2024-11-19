@@ -1,6 +1,193 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h1>Play</h1>
-<p>Let's start the game!</p>
+    <h1>Bienvenue, à Catan</h1>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Catan Board</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f5f5f5;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+            .regenerate-button {
+                margin-top: 20px;
+                padding: 10px 20px;
+                font-size: 16px;
+                cursor: pointer;
+            }
+            .board {
+                position: relative;
+                width: 800px;
+                height: 800px;
+                background-color: #fff;
+                margin-top: 20px;
+            }
+            .tile {
+                position: absolute;
+                width: 150px;
+                height: 173px;
+                background-size: cover;
+                background-position: center;
+                transform: translate(-50%, -50%);
+            }
+            .number {
+                position: absolute;
+                top: 60%; /* Modifié de 50% à 60% pour abaisser les numéros */
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 40px;
+                height: 40px;
+                background-size: cover;
+                background-position: center;
+            }
+        </style>
+    </head>
+    <body>
+        <button class="regenerate-button" onclick="regenerateBoard()">Regenerate Board</button>
+        <div class="board" id="board"></div>
+
+        <script>
+            // Configuration du plateau
+            const numbers = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]; // Excluant 7
+            const rows = [3, 4, 5, 4, 3]; // Modèle de grille hexagonale
+            const tiles = {
+                'Ore': 3,
+                'Weat': 4,
+                'Sheep': 4,
+                'Brick': 3,
+                'Wood': 4,
+                'Desert': 1
+            };
+
+            // Chemins vers les images des ressources et des numéros
+            const resourceImages = {
+                'Ore': '/static/images/tiles/stone.png',
+                'Weat': '/static/images/tiles/weat.png',
+                'Sheep': '/static/images/tiles/sheep.png',
+                'Brick': '/static/images/tiles/brick.png',
+                'Wood': '/static/images/tiles/wood.png',
+                'Desert': '/static/images/tiles/desert.png'
+            };
+
+            const numberImages = {
+                2: '/static/images/numbers/2.png',
+                3: '/static/images/numbers/3.png',
+                4: '/static/images/numbers/4.png',
+                5: '/static/images/numbers/5.png',
+                6: '/static/images/numbers/6.png',
+                8: '/static/images/numbers/8.png',
+                9: '/static/images/numbers/9.png',
+                10: '/static/images/numbers/10.png',
+                11: '/static/images/numbers/11.png',
+                12: '/static/images/numbers/12.png'
+            };
+
+            // Générer le plateau
+            function generateBoard() {
+                const boardElement = document.getElementById('board');
+
+                // Générer les types de tuiles
+                let tileTypes = [];
+                for (const [tile, count] of Object.entries(tiles)) {
+                    for (let i = 0; i < count; i++) {
+                        tileTypes.push(tile);
+                    }
+                }
+                shuffleArray(tileTypes);
+
+                // Générer les numéros et insérer 7 pour le désert
+                let numbersAvailable = numbers.slice();
+                shuffleArray(numbersAvailable);
+
+                // Construire la grille
+                let tileGrid = [];
+                let numberGrid = [];
+                let tileIndex = 0;
+
+                for (let row = 0; row < rows.length; row++) {
+                    let tilesInRow = [];
+                    let numbersInRow = [];
+                    for (let col = 0; col < rows[row]; col++) {
+                        const tileType = tileTypes[tileIndex];
+                        tilesInRow.push(tileType);
+
+                        // Assigner les jetons numérotés, sauter le numéro pour le désert
+                        if (tileType === 'Desert') {
+                            numbersInRow.push(7);
+                        } else {
+                            const num = numbersAvailable.pop();
+                            numbersInRow.push(num);
+                        }
+                        tileIndex++;
+                    }
+                    tileGrid.push(tilesInRow);
+                    numberGrid.push(numbersInRow);
+                }
+
+                // Logique de positionnement
+                const tileWidth = 150;
+                const tileHeight = 173;
+                const xOffset = tileWidth / 2;
+                const yOffset = tileHeight * 0.75;
+                const startX = boardElement.clientWidth / 2;
+                const startY = tileHeight / 2;
+
+                for (let row = 0; row < tileGrid.length; row++) {
+                    const cols = tileGrid[row].length;
+                    for (let col = 0; col < cols; col++) {
+                        const tileType = tileGrid[row][col];
+                        const number = numberGrid[row][col];
+
+                        const tileDiv = document.createElement('div');
+                        tileDiv.classList.add('tile');
+                        tileDiv.style.backgroundImage = `url(${resourceImages[tileType]})`;
+
+                        // Calculer la position
+                        const xPos = startX + (col - (cols - 1) / 2) * tileWidth * 0.87;
+                        const yPos = startY + row * yOffset;
+
+                        tileDiv.style.left = `${xPos}px`;
+                        tileDiv.style.top = `${yPos}px`;
+
+                        // Ajouter le jeton numéroté
+                        if (number !== 7) {
+                            const numberDiv = document.createElement('div');
+                            numberDiv.classList.add('number');
+                            numberDiv.style.backgroundImage = `url(${numberImages[number]})`;
+                            tileDiv.appendChild(numberDiv);
+                        }
+
+                        boardElement.appendChild(tileDiv);
+                    }
+                }
+            }
+
+            // Fonction pour régénérer le plateau
+            function regenerateBoard() {
+                const boardElement = document.getElementById('board');
+                boardElement.innerHTML = ''; // Effacer le plateau
+                generateBoard(); // Générer un nouveau plateau
+            }
+
+            // Fonction utilitaire pour mélanger un tableau
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            // Initialiser le plateau au chargement de la page
+            window.onload = generateBoard;
+        </script>
+    </body>
+    </html>
 {% endblock %}

@@ -95,6 +95,7 @@ app.include_router(routers.HealthRouter)
 app.add_middleware(PrometheusMiddleware)
 app.add_route("/metrics", handle_metrics)
 
+
 # Database initialization on startup
 @app.on_event("startup")
 async def startup_event():
