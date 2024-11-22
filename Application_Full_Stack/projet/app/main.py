@@ -130,14 +130,8 @@ async def profile(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse("/login", status_code=303)
 
-    profile_pictures_path = Path("static/images/profile_pictures")
-    profile_pictures = list(profile_pictures_path.glob("*.*"))  # Get all images
-    random_picture = random.choice(profile_pictures) if profile_pictures else None
-
-    # Check if the profile picture file exists, otherwise fall back to a default image
-    picture_file = Path(f"static/images/profile_pictures/{random_picture}.png")
-    if not picture_file.is_file():
-        profile_picture_path = "/static/images/profile_pictures/image1.png"
+    # Build the full path to the user's profile picture
+    profile_picture_path = f"/static/images/profile_pictures/{user.profile_picture}"
 
     # Render the profile template
     return templates.TemplateResponse("profile.html", {
@@ -145,3 +139,23 @@ async def profile(request: Request, db: Session = Depends(get_db)):
         "user": user,
         "profile_picture": profile_picture_path
     })
+
+
+class UserResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+    profile_picture: str
+
+    class Config:
+        orm_mode = True  # Enables Pydantic to work with ORM objects
+
+
+@app.get("/users", response_model=List[UserResponse])
+def get_all_users(db: Session = Depends(get_db)):
+    """
+    Fetch all users from the database.
+    """
+    users = db.query(User).all()
+    return users
