@@ -94,7 +94,7 @@ FullStackCatan
 │           ├── static         # Fichiers CSS et JS
 │           ├── templates      # Fichiers HTML (Jinja2)
 │           └── __pycache__    # Fichiers compilés Python
-
+```
 ### Explication des sections principales :
 
 - **Game.py** : Contient la logique principale du jeu.
