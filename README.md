@@ -1,19 +1,21 @@
 # 🎲 Jeu Catan en ligne avec FastAPI
 
 ### 📋 Description
-Ce projet est une application web basée sur le jeu **Catan**, construite avec **FastAPI**. Il propose une plateforme en ligne permettant aux joueurs de s'inscrire, de se connecter, et de jouer au célèbre jeu de société Catan. Le projet utilise un système d'authentification sécurisé basé sur **JWT (JSON Web Tokens)** pour protéger les fonctionnalités accessibles uniquement aux utilisateurs connectés.
+Ce projet est une application web basée sur le jeu Catan, construite avec FastAPI. Il propose une plateforme en ligne permettant aux joueurs de s'inscrire, de se connecter, et de jouer au célèbre jeu de société Catan.
+
+Le projet utilise une authentification basée sur les utilisateurs SQL plutôt qu’un système JWT. Les utilisateurs sont authentifiés via une gestion des sessions et des requêtes directes à la base de données.
+
+Lors de la création d’un nouvel utilisateur, ses informations sont disponibles dans la section /profile, qui affiche également une photo de profil assignée aléatoirement à partir d’une sélection prédéfinie. Tant que vous ne redémarrez pas la base de données avec une commande docker compose down, vous pouvez créer plusieurs comptes. 
 
 ---
 
 ## 📂 Fonctionnalités principales
 
-- **Inscription** : Les joueurs peuvent créer un compte.
+- **Inscription** : Les joueurs peuvent créer un compte avec un prénom, un nom, un email et un mot de passe.
 - **Connexion** : Les joueurs peuvent se connecter en utilisant leur email et mot de passe.
-- **Authentification JWT** : Utilisation des tokens pour sécuriser les routes protégées.
+- **Authentification SQL** : Basée sur les sessions et les requêtes à la base de données (pas de JWT).
+- **Photos de profil aléatoires** : Chaque nouvel utilisateur se voit attribuer une image parmi un ensemble d'images prédéfinies.
 - **Jeu en ligne** : Interface utilisateur inspirée du jeu de société Catan.
-- **Gestion sécurisée des mots de passe** : Hachage des mots de passe avec `bcrypt`.
-- **Cookies sécurisés** : Stockage du token JWT dans des cookies protégés.
-- **Surveillance des performances** : Intégration de `PrometheusMiddleware` pour surveiller l'application.
 
 ---
 
@@ -30,19 +32,11 @@ Ce projet est une application web basée sur le jeu **Catan**, construite avec *
    ```bash
    git clone https://TheoLindqvist4/FullStackCatan
 
-2. **Créez et configurez votre fichier `.env` :**
-   Créez un fichier `.env` à la racine du projet et ajoutez-y les variables d'environnement suivantes :
-   ```env
-   POSTGRES_USER=your_username
-   POSTGRES_PASSWORD=your_password
-   POSTGRES_DB=your_database
-   SECRET_KEY=your_secret_key
-
-3. **Installez les dépendances localement (optionnel, si vous ne voulez pas utiliser Docker) :**
+2. **Installez les dépendances localement (optionnel, si vous ne voulez pas utiliser Docker) :**
    ```bash
    pip install -r requirements.txt
 
-4. **Lancer l'application avec Docker Compose :**
+3. **Lancer l'application avec Docker Compose :**
    ```bash
    docker compose up --build
 
@@ -60,8 +54,14 @@ Ce projet est une application web basée sur le jeu **Catan**, construite avec *
 ### 2. **Routes protégées**
 - `GET /profile` : Accessible uniquement aux joueurs connectés.
 - `GET /play` : Interface de jeu inspirée de Catan.
+- `GET /users` : Retourne une liste de tous les utilisateurs dans la base de données.
 
 ---
+## 🖼️ Gestion des photos de profil
+
+Lorsqu'un utilisateur s'inscrit, une photo de profil est choisie aléatoirement à partir du dossier static/images/profile_pictures. L’image attribuée est stockée dans la base de données avec les autres informations de l’utilisateur et est affichée sur la page /profile.
+
+Remarque : Tant que la base de données n'est pas supprimée avec une commande docker compose down, toutes les informations et photos de profil des utilisateurs seront préservées.
 
 ## 🛠️ Configuration
 
@@ -70,29 +70,38 @@ Ce projet est une application web basée sur le jeu **Catan**, construite avec *
 Voici la structure principale du projet pour une meilleure compréhension :
 
 ```bash
-FullStackCatan
-├── Game.py                # Script principal du jeu
-├── README.md              # Documentation du projet
-├── test.py                # Script pour les tests
-├── .git/                  # Dossier pour la gestion Git
-├── Application_Full_Stack
-│   └── projet
-│       ├── .env               # Fichier des variables d'environnement
-│       ├── docker-compose.yml # Configuration Docker Compose
-│       ├── Dockerfile         # Configuration Docker
-│       ├── requirements.txt   # Liste des dépendances Python
-│       └── app
-│           ├── main.py        # Point d'entrée de l'application
-│           ├── __init__.py    # Fichier d'initialisation
-│           ├── dependencies   # Gestion des dépendances
-│           ├── images         # Images utilisées dans le jeu
-│           ├── models         # Gestion des modèles (Base de données)
-│           ├── routers        # Gestion des routes API
-│           ├── schemas        # Schémas des données
-│           ├── services       # Services et logique métier
-│           ├── static         # Fichiers CSS et JS
-│           ├── templates      # Fichiers HTML (Jinja2)
-│           └── __pycache__    # Fichiers compilés Python
+projet
+├── .env                   # Fichier des variables d'environnement (ex. : clés secrètes, configuration DB)
+├── docker-compose.yml     # Configuration pour Docker Compose
+├── Dockerfile             # Instructions pour construire l'image Docker
+├── requirements.txt       # Liste des dépendances Python
+│
+└── app
+    ├── main.py            # Point d'entrée de l'application (définit les routes principales)
+    ├── __init__.py        # Fichier d'initialisation du module
+    │
+    ├── dependencies       # Gestion des dépendances et middlewares
+    │
+    ├── models             # Modèles de données pour la base de données (ex. : utilisateurs, profils)
+    │
+    ├── schemas            # Définition des schémas de données (ex. : validation des requêtes/réponses)
+    │
+    ├── services           # Logique métier (ex. : gestion des utilisateurs, services de jeu)
+    │
+    ├── static             # Fichiers statiques pour le frontend
+    │   ├── style.css      # Fichier CSS principal
+    │   └── images         # Images utilisées dans le projet (profils, ressources, etc.)
+    │
+    ├── templates          # Templates HTML pour l'interface utilisateur
+    │   ├── base.html      # Template de base pour les autres pages
+    │   ├── home.html      # Page d'accueil
+    │   ├── login.html     # Page de connexion
+    │   ├── play.html      # Interface du jeu
+    │   ├── profile.html   # Page de profil utilisateur
+    │   └── signup.html    # Page d'inscription
+    │
+    └── __pycache__        # Fichiers compilés Python (générés automatiquement)
+
 ```
 ### Explication des sections principales :
 
@@ -102,7 +111,6 @@ FullStackCatan
   - **.env** : Contient les variables d'environnement sensibles (ex. : mots de passe, clés API).
   - **app/** : Structure principale de l'application avec :
     - **models/** : Définitions des modèles pour la base de données.
-    - **routers/** : Routes API pour les fonctionnalités de l'application.
     - **templates/** : Fichiers HTML pour l'interface utilisateur.
 
 ---
@@ -118,13 +126,11 @@ FullStackCatan
 2. **Connexion :**
    - Accédez à `/login` avec vos identifiants.
    - Vérifiez que vous êtes redirigé vers `/profile` après connexion.
+   - Vérifiez que chaque nouvel utilisateur se voit attribuer une photo de profil différente (aléatoire).
 
-3. **Routes protégées :**
-   - Essayez d'accéder à `/profile` ou `/play` sans être connecté. Vous devriez recevoir une erreur `401 Unauthorized`.
-   - Connectez-vous, puis accédez aux pages protégées.
-
-4. **Vérification des cookies :**
-   - Assurez-vous que le token JWT est stocké dans un cookie après connexion.
+3. **Route protégé :**
+   - Essayez d'accéder à `/profile` sans être connecté. Vous devriez recevoir une erreur `401 Unauthorized`.
+   - Connectez-vous, puis accédez à la page protégé.
 
 ---
 
@@ -132,8 +138,6 @@ FullStackCatan
 
 - **Framework Backend** : [FastAPI](https://fastapi.tiangolo.com/)
 - **Base de données** : PostgreSQL
-- **Authentification** : JSON Web Tokens (JWT) avec `jose`
-- **Hachage des mots de passe** : `passlib[bcrypt]`
 - **Frontend** : HTML, CSS, Jinja2 Templates
 - **Infrastructure** : Docker & Docker Compose
-- **Surveillance** : `PrometheusMiddleware`
+- **Gestion des mots de passe** : passlib[bcrypt]
