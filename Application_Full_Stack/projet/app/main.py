@@ -3,15 +3,14 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from app import routers
 from starlette.middleware.sessions import SessionMiddleware
 from app.models.database import BaseSQL
 import random
 from app.models.database import engine, SessionLocal
 from app.models.db import User, get_db
 from pydantic import BaseModel
-from typing import List, Annotated
-from pathlib import Path
+from typing import List
+
 
 # FastAPI app instance
 app = FastAPI(
@@ -35,10 +34,6 @@ origins = [
 ]
 
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
-
-# Routers
-app.include_router(routers.PostRouter)
-app.include_router(routers.HealthRouter)
 
 # Database initialization on startup
 @app.on_event("startup")
