@@ -29,7 +29,6 @@ Ce projet est une application web basée sur le jeu **Catan**, construite avec *
 1. **Clonez ce dépôt :**
    ```bash
    git clone https://github.com/votre-utilisateur/nom-du-repo.git
-   cd nom-du-repo
 
 2. **Créez et configurez votre fichier `.env` :**
    Créez un fichier `.env` à la racine du projet et ajoutez-y les variables d'environnement suivantes :
