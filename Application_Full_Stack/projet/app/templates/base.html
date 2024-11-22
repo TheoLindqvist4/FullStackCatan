@@ -3,11 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My FastAPI App</title>
+    <title>FastAPI App</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Header with Fixed Position and Padding Adjustment */
+        header {
+            background: url('/static/images/header/catan.jpg') no-repeat center center/cover;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        nav {
+            margin-top: 10px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 1rem;
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        /* Green Strip Below Header */
+        .green-strip {
+            background-color: #4CAF50;
+            height: 10px;
+            width: 100%;
+        }
+
+        /* Main Content Spacing */
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin-top: 20px; /* Prevents overlap with header */
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <header>
+        <h1>FastAPI App</h1>
         <nav>
             <a href="/">Home</a>
             <a href="/play">Play</a>
@@ -15,8 +91,12 @@
             <a href="/login">Login</a>
         </nav>
     </header>
+    <div class="green-strip"></div>
     <main>
         {% block content %}{% endblock %}
     </main>
+    <footer>
+        &copy; 2024 FastAPI App. All rights reserved.
+    </footer>
 </body>
 </html>

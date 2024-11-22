@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker,Session
+from sqlalchemy.orm import sessionmaker
 import os 
 
 POSTGRES_USER = os.environ.get("POSTGRES_USER")
@@ -14,22 +14,6 @@ print(SQLALCHEMY_DATABASE_URL)
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
 )
-SessionLocal = sessionmaker(autocommit=False, autoflush=True, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush= False, bind=engine)
 
 BaseSQL = declarative_base()
-
-
-from sqlalchemy import Column, Integer, String
-
-# Define the User model
-class User(BaseSQL):
-    __tablename__ = "users"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    first_name = Column(String, index=True)
-    last_name = Column(String, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    password = Column(String, nullable=False)
-
-def get_user_by_id(db: Session, user_id: int):
-    return db.query(User).filter(User.id == user_id).first()

@@ -3,63 +3,15 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from app.models.database import BaseSQL, engine, User, SessionLocal, get_user_by_id
 from app import routers
-from starlette.middleware.cors import CORSMiddleware
-from starlette_exporter import PrometheusMiddleware, handle_metrics
-from jose import JWTError, jwt
-from app.models import database, db
-from datetime import datetime, timedelta
-
-from fastapi.security import OAuth2PasswordBearer
-import secrets
-
-
-# Dependency to get the database session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-# JWT Secret and Algorithm
-SECRET_KEY = secrets.token_urlsafe(32)
-ALGORITHM = "HS256"
-
-# OAuth2PasswordBearer for token extraction
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(hours=1)  # Set token expiry time (e.g., 1 hour)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
-    request: Request = None
-):
-    if not token and request:
-        token = request.cookies.get("access_token")
-
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    try:
-        payload = jwt.decode(token.replace("Bearer ", ""), SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        user = get_user_by_id(db, user_id)
-        if user is None:
-            raise HTTPException(status_code=404, detail="User not found")
-        return user
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
+from starlette.middleware.sessions import SessionMiddleware
+from app.models.database import BaseSQL
+import random
+from app.models.database import engine, SessionLocal
+from app.models.db import User, get_db
+from pydantic import BaseModel
+from typing import List, Annotated
+from pathlib import Path
 
 # FastAPI app instance
 app = FastAPI(
@@ -67,6 +19,9 @@ app = FastAPI(
     description="My description",
     version="0.0.1",
 )
+
+BaseSQL.metadata.create_all(bind = engine)
+
 
 # Set up templates and static directories
 templates = Jinja2Templates(directory="app/templates")
@@ -79,22 +34,11 @@ origins = [
     "http://localhost:3001",
 ]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
 
 # Routers
 app.include_router(routers.PostRouter)
 app.include_router(routers.HealthRouter)
-
-# Prometheus Monitoring
-app.add_middleware(PrometheusMiddleware)
-app.add_route("/metrics", handle_metrics)
-
 
 # Database initialization on startup
 @app.on_event("startup")
@@ -111,35 +55,10 @@ async def read_home(request: Request):
 async def read_play(request: Request):
     return templates.TemplateResponse("play.html", {"request": request})
 
-@app.get("/profile")
-async def profile(request: Request, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    if not current_user:
-        return RedirectResponse("/login", status_code=303)
-    return templates.TemplateResponse("profile.html", {"request": request, "user": current_user})
-
 # Route for the login page
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
-
-@app.post("/login")
-async def login(
-    request: Request, 
-    email: str = Form(...), 
-    password: str = Form(...), 
-    db: Session = Depends(get_db),
-):
-    user = db.query(User).filter(User.email == email).first()
-    if not user or user.password != password:
-        raise HTTPException(status_code=400, detail="Invalid email or password")
-    
-    # Create a token
-    access_token = create_access_token(data={"sub": str(user.id)})
-    
-    # Store token in cookies (optional) and redirect to profile
-    response = RedirectResponse(url="/profile", status_code=303)
-    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
-    return response
 
 # Route for the signup page
 @app.get("/signup", response_class=HTMLResponse)
@@ -165,11 +84,64 @@ async def signup(
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create a new user
-    new_user = User(first_name=first_name, last_name=last_name, email=email, password=password)
+    # Randomly assign a profile picture
+    profile_pictures = ["image1.png", "image2.png", "image3.png", "image4.png"]
+    selected_picture = random.choice(profile_pictures)
+
+    # Create a new user with boards_generated initialized to NULL
+    new_user = User(
+        first_name = first_name, 
+        last_name = last_name, 
+        email = email, 
+        password=password,
+        boards_generated = None,  # Explicitly set to None (optional, default is None)
+        profile_picture = selected_picture
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     
     # Redirect to login page after successful registration
     return templates.TemplateResponse("login.html", {"request": request, "message": "Account created successfully!"})
+
+
+@app.post("/login")
+async def login(
+    request: Request, 
+    email: str = Form(...), 
+    password: str = Form(...), 
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.email == email).first()
+    if not user or user.password != password:
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+    # Store user ID in session
+    request.session["user_id"] = user.id
+    return RedirectResponse("/profile", status_code=303)
+
+@app.get("/profile")
+async def profile(request: Request, db: Session = Depends(get_db)):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return RedirectResponse("/login", status_code=303)
+
+    # Fetch user information from the database
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    profile_pictures_path = Path("static/images/profile_pictures")
+    profile_pictures = list(profile_pictures_path.glob("*.*"))  # Get all images
+    random_picture = random.choice(profile_pictures) if profile_pictures else None
+
+    # Check if the profile picture file exists, otherwise fall back to a default image
+    picture_file = Path(f"static/images/profile_pictures/{random_picture}.png")
+    if not picture_file.is_file():
+        profile_picture_path = "/static/images/profile_pictures/image1.png"
+
+    # Render the profile template
+    return templates.TemplateResponse("profile.html", {
+        "request": request,
+        "user": user,
+        "profile_picture": profile_picture_path
+    })
